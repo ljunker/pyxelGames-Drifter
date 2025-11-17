@@ -89,11 +89,11 @@ class App:
             pyxel.quit()
 
         # debug code for triggering a bomb
-        if pyxel.btnp(pyxel.KEY_F):
-            self.explosion_r = 0
-            self.explosion_x = self.ship.x
-            self.explosion_y = self.ship.y
-            self.explosion = True
+        #if pyxel.btnp(pyxel.KEY_F):
+        #    self.explosion_r = 0
+        #    self.explosion_x = self.ship.x
+        #    self.explosion_y = self.ship.y
+        #    self.explosion = True
 
         # Restart if destroyed
         if not self.ship_alive and pyxel.btnp(pyxel.KEY_R):
