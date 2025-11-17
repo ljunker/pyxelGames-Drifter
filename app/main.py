@@ -1,209 +1,11 @@
 import math
 import random
-import pyxel
 
-
-WIDTH = 320
-HEIGHT = 240
-
-
-def wrap_position(x: float, y: float):
-    if x < 0:
-        x += WIDTH
-    elif x >= WIDTH:
-        x -= WIDTH
-    if y < 0:
-        y += HEIGHT
-    elif y >= HEIGHT:
-        y -= HEIGHT
-    return x, y
-
-
-def draw_centered_text(y: int, text: str, color: int):
-    w = len(text)*4
-    x = (pyxel.width - w)//2
-    pyxel.text(x, y, text, color)
-
-
-# Gameplay tuning
-# Minimum toroidal distance from ship for spawning fresh asteroids
-SAFE_SPAWN_DIST = 80  # pixels
-# Dynamic difficulty: minimum asteroids scales with score
-# Base minimum on screen (auto-replenished if below)
-BASE_MIN_ASTEROIDS = 10
-# Every DIFFICULTY_SCORE_STEP points, raise the minimum by ASTEROIDS_PER_STEP
-DIFFICULTY_SCORE_STEP = 100
-ASTEROIDS_PER_STEP = 2
-# Cap the minimum to avoid overwhelming the screen
-MAX_MIN_ASTEROIDS = 16
-
-# Powerup tuning
-# How often to try spawning a powerup (in frames) and maximum concurrent powerups
-POWERUP_SPAWN_MIN = 480  # 8 seconds at 60fps
-POWERUP_SPAWN_MAX = 900  # 15 seconds
-POWERUP_CAP = 3
-POWERUP_TTL = 20 * 60  # 20 seconds lifetime
-POWERUP_RADIUS = 4
-LASER_POWER_DURATION = 12 * 60  # 12 seconds of piercing bullets
-POINTS_POWER_VALUE = 50
-
-
-class Ship:
-    def __init__(self):
-        self.x = WIDTH / 2
-        self.y = HEIGHT / 2
-        self.vx = 0.0
-        self.vy = 0.0
-        self.angle = -math.pi / 2  # facing up
-        self.radius = 5
-        self.max_speed = 2.5
-        self.thrust = 0.06
-        self.brake = 0.04
-        self.friction = 0.002
-
-    def update(self):
-        # Rotation
-        if pyxel.btn(pyxel.KEY_A):
-            self.angle -= 0.06
-        if pyxel.btn(pyxel.KEY_D):
-            self.angle += 0.06
-
-        # Acceleration / reverse acceleration
-        if pyxel.btn(pyxel.KEY_W):
-            ax = math.cos(self.angle) * self.thrust
-            ay = math.sin(self.angle) * self.thrust
-            self.vx += ax
-            self.vy += ay
-        if pyxel.btn(pyxel.KEY_S):
-            # reverse thrust: accelerate backwards relative to facing
-            ax = -math.cos(self.angle) * self.thrust
-            ay = -math.sin(self.angle) * self.thrust
-            self.vx += ax
-            self.vy += ay
-
-        # Friction
-        self.vx *= (1.0 - self.friction)
-        self.vy *= (1.0 - self.friction)
-
-        # Clamp speed
-        speed = math.hypot(self.vx, self.vy)
-        if speed > self.max_speed:
-            scale = self.max_speed / speed
-            self.vx *= scale
-            self.vy *= scale
-
-        # Integrate and wrap
-        self.x += self.vx
-        self.y += self.vy
-        self.x, self.y = wrap_position(self.x, self.y)
-
-    def nose_pos(self):
-        return (
-            self.x + math.cos(self.angle) * self.radius,
-            self.y + math.sin(self.angle) * self.radius,
-        )
-
-    def triangle_points(self):
-        # Triangle ship points
-        nose = self.nose_pos()
-        left = (
-            self.x + math.cos(self.angle + 2.5) * self.radius,
-            self.y + math.sin(self.angle + 2.5) * self.radius,
-        )
-        right = (
-            self.x + math.cos(self.angle - 2.5) * self.radius,
-            self.y + math.sin(self.angle - 2.5) * self.radius,
-        )
-        return nose, left, right
-
-    def draw(self):
-        nose, left, right = self.triangle_points()
-        # Draw outline triangle (white)
-        pyxel.line(int(nose[0]), int(nose[1]), int(left[0]), int(left[1]), 7)
-        pyxel.line(int(nose[0]), int(nose[1]), int(right[0]), int(right[1]), 7)
-        pyxel.line(int(left[0]), int(left[1]), int(right[0]), int(right[1]), 7)
-
-
-class Bullet:
-    def __init__(self, x, y, angle):
-        speed = 4.0
-        self.x = x
-        self.y = y
-        self.vx = math.cos(angle) * speed
-        self.vy = math.sin(angle) * speed
-        self.ttl = 60  # frames
-        self.radius = 1
-
-    def update(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.x, self.y = wrap_position(self.x, self.y)
-        self.ttl -= 1
-        return self.ttl > 0
-
-    def draw(self):
-        pyxel.circ(int(self.x), int(self.y), self.radius, 10)
-
-
-class Powerup:
-    """Simple powerup entity.
-    Types: 'laser' (piercing shots), 'points' (+score), 'bomb' (clear all asteroids).
-    """
-    def __init__(self, x, y, kind: str):
-        self.x = x
-        self.y = y
-        self.kind = kind
-        self.r = POWERUP_RADIUS
-        # gentle drift
-        ang = random.uniform(0, math.tau)
-        spd = random.uniform(0.02, 0.08)
-        self.vx = math.cos(ang) * spd
-        self.vy = math.sin(ang) * spd
-        self.ttl = POWERUP_TTL
-
-    def update(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.x, self.y = wrap_position(self.x, self.y)
-        self.ttl -= 1
-        return self.ttl > 0
-
-    def draw(self, to_screen):
-        sx, sy = to_screen(self.x, self.y)
-        color = 7
-        glyph = "?"
-        if self.kind == 'laser':
-            color = 12  # orange
-            glyph = "L"
-        elif self.kind == 'points':
-            color = 11  # yellow
-            glyph = "+"
-        elif self.kind == 'bomb':
-            color = 8   # red
-            glyph = "B"
-        pyxel.circ(int(sx), int(sy), self.r, color)
-        # tiny label
-        pyxel.text(int(sx) - 2, int(sy) - 2, glyph, 0)
-
-
-class Asteroid:
-    def __init__(self, x=None, y=None, r=8):
-        self.x = x if x is not None else random.uniform(0, WIDTH)
-        self.y = y if y is not None else random.uniform(0, HEIGHT)
-        angle = random.uniform(0, math.tau)
-        # Slower default asteroid speed
-        speed = random.uniform(0.08, 0.4)
-        self.vx = math.cos(angle) * speed
-        self.vy = math.sin(angle) * speed
-        self.r = r
-
-    def update(self):
-        self.x += self.vx
-        self.y += self.vy
-        self.x, self.y = wrap_position(self.x, self.y)
-
-    def draw(self):
-        pyxel.circb(int(self.x), int(self.y), int(self.r), 5)
+from asteroid import Asteroid
+from bullet import Bullet
+from helper import *
+from powerup import Powerup
+from ship import Ship
 
 
 class App:
@@ -285,7 +87,7 @@ class App:
             y = random.uniform(0, HEIGHT)
             if toroidal_dist_sq(x, y, sx, sy) >= min_dist_sq:
                 return Powerup(x, y, kind)
-        return Powerup(sx+min_dist*2, sy+min_dist*2, kind)
+        return Powerup(sx + min_dist * 2, sy + min_dist * 2, kind)
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
@@ -490,7 +292,7 @@ class App:
         # Score HUD (top-right)
         score_text = f"Score: {self.score}"
         if self.ship_alive:
-            pyxel.text(WIDTH - 4 - len(score_text)*4, 2, score_text, 11)
+            pyxel.text(WIDTH - 4 - len(score_text) * 4, 2, score_text, 11)
         else:
             draw_centered_text(65, score_text, 11)
 
