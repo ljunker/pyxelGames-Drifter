@@ -1,7 +1,6 @@
 .idea
 .venv
 
-*.pyxapp
-*.html
+dist
 
 **/__pycache__/**
