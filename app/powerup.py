@@ -44,4 +44,4 @@ class Powerup:
             glyph = "B"
         pyxel.circ(int(sx), int(sy), self.r, color)
         # tiny label
-        pyxel.text(int(sx) - 2, int(sy) - 2, glyph, 0)
+        pyxel.text(int(sx) - 1, int(sy) - 2, glyph, 0)
