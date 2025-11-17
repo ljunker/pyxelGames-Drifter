@@ -1,0 +1,67 @@
+name: Build and Deploy to itch.io
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: System-Abhängigkeiten für Pyxel
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libsdl2-2.0-0 \
+            libsdl2-image-2.0-0 \
+            libsdl2-mixer-2.0-0 \
+            libsdl2-ttf-2.0-0 \
+            libgl1 \
+            libglu1-mesa \
+            libasound2t64 \
+            libx11-6 \
+            libxcursor1 \
+            libxi6 \
+            libxrandr2 \
+            libxinerama1 \
+            libxxf86vm1
+
+      - name: Init uv project env
+        run: |
+          uv venv
+          uv run python --version
+
+      - name: Add dependencies
+        run: |
+          uv add pyxel
+
+      - name: Setup butler
+        uses: remarkablegames/setup-butler@v2
+
+      - name: Build Pyxel package (.pyxapp)
+        env:
+          BUTLER_API_KEY: ${{ secrets.ITCH_BUTLER_CREDENTIALS }}
+        run: |
+          mkdir -p dist web
+          cd app
+          uv run pyxel package . main.py
+          cp app.pyxapp ../dist
+          cd ../dist
+          uv run pyxel app2html app.pyxapp
+          cd ..
+          # Für Web-Kanal erwartet itch.io meistens ein Verzeichnis mit index.html
+          cp dist/app.html web/index.html
+          butler push web kryptikker/drifter:web
