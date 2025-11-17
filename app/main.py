@@ -271,14 +271,21 @@ class App:
             dy = min(dy, HEIGHT - dy)
             return dx * dx + dy * dy
 
+        kind_r = random.uniform(0, 1)
+        if kind_r < 0.5:
+            kind = 'points'
+        elif 0.5 < kind_r < 0.9:
+            kind = 'laser'
+        else:
+            kind = 'bomb'
+
         min_dist_sq = min_dist * min_dist
         for _ in range(256):
             x = random.uniform(0, WIDTH)
             y = random.uniform(0, HEIGHT)
             if toroidal_dist_sq(x, y, sx, sy) >= min_dist_sq:
-                break
-        kind = random.choice(['laser', 'points', 'bomb'])
-        return Powerup(x, y, kind)
+                return Powerup(x, y, kind)
+        return Powerup(sx+min_dist*2, sy+min_dist*2, kind)
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
