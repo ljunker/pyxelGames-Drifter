@@ -68,20 +68,18 @@ class Ship:
         if pyxel.btn(pyxel.KEY_D):
             self.angle += 0.06
 
-        # Acceleration / deceleration
+        # Acceleration / reverse acceleration
         if pyxel.btn(pyxel.KEY_W):
             ax = math.cos(self.angle) * self.thrust
             ay = math.sin(self.angle) * self.thrust
             self.vx += ax
             self.vy += ay
         if pyxel.btn(pyxel.KEY_S):
-            # brake opposite to current velocity
-            speed = math.hypot(self.vx, self.vy)
-            if speed > 0:
-                bx = -self.vx / max(speed, 1e-6) * self.brake
-                by = -self.vy / max(speed, 1e-6) * self.brake
-                self.vx += bx
-                self.vy += by
+            # reverse thrust: accelerate backwards relative to facing
+            ax = -math.cos(self.angle) * self.thrust
+            ay = -math.sin(self.angle) * self.thrust
+            self.vx += ax
+            self.vy += ay
 
         # Friction
         self.vx *= (1.0 - self.friction)
@@ -478,7 +476,7 @@ class App:
 
         # UI
         if self.ship_alive:
-            draw_centered_text(2, "A/D turn  W accel  S brake  SPACE shoot  Q quit", 13)
+            draw_centered_text(2, "A/D turn  W accel  S reverse  SPACE shoot  Q quit", 13)
         else:
             draw_centered_text(56, "Destroyed! Press R to restart", 8)
 
