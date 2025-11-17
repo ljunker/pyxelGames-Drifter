@@ -1,3 +1,5 @@
+import math
+
 import pyxel
 
 WIDTH = 320
@@ -16,6 +18,21 @@ def wrap_position(x: float, y: float):
     return x, y
 
 
+def toroidal_dist_sq(x1, y1, x2, y2):
+    dx = abs(x1 - x2)
+    dy = abs(y1 - y2)
+    dx = min(dx, WIDTH - dx)
+    dy = min(dy, HEIGHT - dy)
+    return dx * dx + dy * dy
+
+def toroidal_dist(x1, y1, x2, y2):
+    dx = abs(x1 - x2)
+    dy = abs(y1 - y2)
+    dx = min(dx, WIDTH - dx)
+    dy = min(dy, HEIGHT - dy)
+    return math.sqrt(dx * dx + dy * dy)
+
+
 def draw_centered_text(y: int, text: str, color: int):
     w = len(text)*4
     x = (pyxel.width - w)//2
@@ -24,7 +41,7 @@ def draw_centered_text(y: int, text: str, color: int):
 
 # Gameplay tuning
 # Minimum toroidal distance from ship for spawning fresh asteroids
-SAFE_SPAWN_DIST = 80  # pixels
+SAFE_SPAWN_DIST = WIDTH//2  # pixels
 # Dynamic difficulty: minimum asteroids scales with score
 # Base minimum on screen (auto-replenished if below)
 BASE_MIN_ASTEROIDS = 10
@@ -43,3 +60,4 @@ POWERUP_TTL = 20 * 60  # 20 seconds lifetime
 POWERUP_RADIUS = 4
 LASER_POWER_DURATION = 12 * 60  # 12 seconds of piercing bullets
 POINTS_POWER_VALUE = 50
+EXPLOSION_SPD = 3

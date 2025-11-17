@@ -23,6 +23,8 @@ class App:
         self.powerups = []
         self.powerup_spawn_timer = random.randint(POWERUP_SPAWN_MIN, POWERUP_SPAWN_MAX)
         self.laser_timer = 0
+        self.explosion = False
+        self.explosion_r, self.explosion_x, self.explosion_y = 0, 0, 0
         pyxel.run(self.update, self.draw)
 
     def current_min_asteroids(self) -> int:
@@ -66,13 +68,6 @@ class App:
     def spawn_powerup_away(self, min_dist: float) -> "Powerup":
         sx, sy = self.ship.x, self.ship.y
 
-        def toroidal_dist_sq(x1, y1, x2, y2):
-            dx = abs(x1 - x2)
-            dy = abs(y1 - y2)
-            dx = min(dx, WIDTH - dx)
-            dy = min(dy, HEIGHT - dy)
-            return dx * dx + dy * dy
-
         kind_r = random.uniform(0, 1)
         if kind_r < 0.5:
             kind = 'points'
@@ -92,6 +87,13 @@ class App:
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
+
+        # debug code for triggering a bomb
+        if pyxel.btnp(pyxel.KEY_F):
+            self.explosion_r = 0
+            self.explosion_x = self.ship.x
+            self.explosion_y = self.ship.y
+            self.explosion = True
 
         # Restart if destroyed
         if not self.ship_alive and pyxel.btnp(pyxel.KEY_R):
@@ -128,6 +130,22 @@ class App:
         # Update asteroids
         for a in self.asteroids:
             a.update()
+
+        # Update Explosion
+        if self.ship_alive and self.explosion:
+            self.explosion_r += EXPLOSION_SPD
+            surviving_asteroids = []
+            hit_asteroids = []
+            for a in self.asteroids:
+                distance = toroidal_dist(a.x, a.y, self.explosion_x, self.explosion_y)
+                if (distance - self.explosion_r) < 3:
+                    hit_asteroids.append(a)
+                else:
+                    surviving_asteroids.append(a)
+            self.asteroids = surviving_asteroids
+            self.score += 10 * len(hit_asteroids)
+            if self.explosion_r > WIDTH:
+                self.explosion = False
 
         # Update powerups (spawn, tick, pickup)
         if self.powerup_spawn_timer > 0:
@@ -178,10 +196,9 @@ class App:
                     elif p.kind == 'points':
                         self.score += POINTS_POWER_VALUE
                     elif p.kind == 'bomb':
-                        destroyed = len(self.asteroids)
-                        if destroyed:
-                            self.score += 10 * destroyed
-                        self.asteroids = []
+                        self.explosion = True
+                        self.explosion_r = 0
+                        self.explosion_x, self.explosion_y = sx, sy
                     # consumed, do not keep
                 else:
                     remaining.append(p)
@@ -238,7 +255,7 @@ class App:
 
         # Ensure minimum asteroid count (difficulty-based); spawn away from ship
         target_min = self.current_min_asteroids()
-        if len(self.asteroids) < target_min:
+        if not self.explosion and len(self.asteroids) < target_min:
             needed = target_min - len(self.asteroids)
             for _ in range(needed):
                 self.asteroids.append(self.spawn_asteroid_away(SAFE_SPAWN_DIST))
@@ -260,6 +277,10 @@ class App:
         for a in self.asteroids:
             sx, sy = to_screen(a.x, a.y)
             pyxel.circb(int(sx), int(sy), int(a.r), 5)
+
+        if self.ship_alive and self.explosion:
+            sx, sy = to_screen(self.explosion_x, self.explosion_y)
+            pyxel.circb(int(sx), int(sy), int(self.explosion_r), 8)
 
         # Draw bullets relative to camera
         for b in self.bullets:
