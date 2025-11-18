@@ -10,7 +10,7 @@ from ship import Ship
 
 class App:
     def __init__(self):
-        pyxel.init(WIDTH, HEIGHT, fps=60, title="Drifter - Asteroids Prototype")
+        pyxel.init(WIDTH, HEIGHT, fps=60, title="Drifter")
         self.ship = Ship()
         self.bullets = []
         # Initialize score first so difficulty-based counts use it
