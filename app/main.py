@@ -26,17 +26,22 @@ class App:
         self.explosion = False
         self.explosion_r, self.explosion_x, self.explosion_y = 0, 0, 0
         self.init_audio()
+        self.init_music()
         pyxel.run(self.update, self.draw)
 
     def init_audio(self):
         """Preload basic sound effects for key interactions."""
-        self.channel_shoot = 0
-        self.channel_asteroid = 1
-        self.channel_powerup = 2
+        self.channel_shoot = 3
+        self.channel_asteroid = 3
+        self.channel_powerup = 3
 
         self.snd_shoot = 0
         self.snd_asteroid_break = 1
         self.snd_powerup = 2
+        self.snd_melody_a = 3
+        self.snd_melody_b = 4
+        self.snd_bass = 5
+        self.snd_drums = 6
 
         pyxel.sound(self.snd_shoot).set(
             notes="F4C4A3",
@@ -59,6 +64,44 @@ class App:
             effects="NNN",
             speed=8,
         )
+        pyxel.sound(self.snd_melody_a).set(
+            notes="C4RG3RA3RE4R",
+            tones="PPPPPPPP",
+            volumes="77777777",
+            effects="NNNNNNNN",
+            speed=16,
+        )
+        pyxel.sound(self.snd_melody_b).set(
+            notes="F4RE4RD4RC4R",
+            tones="PPPPPPPP",
+            volumes="77777777",
+            effects="NNNNNNNN",
+            speed=16,
+        )
+        pyxel.sound(self.snd_bass).set(
+            notes="C3RG2RF2R",
+            tones="TTTTTTTT",
+            volumes="77777777",
+            effects="VNNNVNNN",
+            speed=16,
+        )
+        pyxel.sound(self.snd_drums).set(
+            notes="C1RC1RC1RC1R",
+            tones="NNNNNNNN",
+            volumes="77777777",
+            effects="FFSFFSFF",
+            speed=16,
+        )
+
+    def init_music(self):
+        """Configure and start the looping background track."""
+        pyxel.music(0).set(
+            [self.snd_melody_a, self.snd_melody_b],
+            [self.snd_bass],
+            [self.snd_drums],
+            [],
+        )
+        pyxel.playm(0, loop=True)
 
     def current_min_asteroids(self) -> int:
         """Compute current minimum asteroid count based on score for difficulty ramp."""
