@@ -25,7 +25,40 @@ class App:
         self.laser_timer = 0
         self.explosion = False
         self.explosion_r, self.explosion_x, self.explosion_y = 0, 0, 0
+        self.init_audio()
         pyxel.run(self.update, self.draw)
+
+    def init_audio(self):
+        """Preload basic sound effects for key interactions."""
+        self.channel_shoot = 0
+        self.channel_asteroid = 1
+        self.channel_powerup = 2
+
+        self.snd_shoot = 0
+        self.snd_asteroid_break = 1
+        self.snd_powerup = 2
+
+        pyxel.sound(self.snd_shoot).set(
+            notes="F4C4A3",
+            tones="TTT",
+            volumes="776",
+            effects="FFN",
+            speed=6,
+        )
+        pyxel.sound(self.snd_asteroid_break).set(
+            notes="A2F2D2C1",
+            tones="NNNN",
+            volumes="7776",
+            effects="SFFN",
+            speed=8,
+        )
+        pyxel.sound(self.snd_powerup).set(
+            notes="C4E4G4",
+            tones="PPN",
+            volumes="567",
+            effects="NNN",
+            speed=8,
+        )
 
     def current_min_asteroids(self) -> int:
         """Compute current minimum asteroid count based on score for difficulty ramp."""
@@ -119,6 +152,7 @@ class App:
                 nose_x, nose_y = self.ship.nose_pos()
                 self.bullets.append(Bullet(nose_x, nose_y, self.ship.angle))
                 self.shoot_cooldown = 8  # small delay
+                pyxel.play(self.channel_shoot, self.snd_shoot)
 
         # Update bullets and remove expired
         updated_bullets = []
@@ -199,6 +233,7 @@ class App:
                         self.explosion = True
                         self.explosion_r = 0
                         self.explosion_x, self.explosion_y = sx, sy
+                    pyxel.play(self.channel_powerup, self.snd_powerup)
                     # consumed, do not keep
                 else:
                     remaining.append(p)
@@ -226,6 +261,7 @@ class App:
                 else:
                     # mark asteroid as hit
                     hit_set.add(hit_index)
+                    pyxel.play(self.channel_asteroid, self.snd_asteroid_break)
                     # split asteroid at hit_index
                     a = self.asteroids[hit_index]
                     if a.r > 3:
