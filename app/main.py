@@ -46,51 +46,83 @@ class App:
         pyxel.sound(self.snd_shoot).set(
             notes="F4C4A3",
             tones="TTT",
-            volumes="776",
+            volumes="221",
             effects="FFN",
             speed=6,
         )
         pyxel.sound(self.snd_asteroid_break).set(
             notes="A2F2D2C1",
             tones="NNNN",
-            volumes="7776",
+            volumes="2221",
             effects="SFFN",
             speed=8,
         )
         pyxel.sound(self.snd_powerup).set(
             notes="C4E4G4",
             tones="PPN",
-            volumes="567",
+            volumes="223",
             effects="NNN",
             speed=8,
         )
-        pyxel.sound(self.snd_melody_a).set(
-            notes="C4RG3RA3RE4R",
-            tones="PPPPPPPP",
-            volumes="77777777",
-            effects="NNNNNNNN",
-            speed=16,
+        pyxel.sound(self.snd_melody_a).mml(
+            "T118 Q76 @1 V15 O5 "
+            "L12 G# C R D# G R >C <A# G R "
+            "L12 F C R G# R C R G# F R "
+            "L12 G# C R D# G R G A# D R "
+            "L12 G R A# D R G A D R "
+            "L12 C D# R G A# R G D# C R "
+            "L12 G# C R F G# R >C <G F R "
+            "L12 F A# R C F R C G# F R "
+            "L12 G# C R D# G R >D# <G C R "
+            "L12 C D# R G C R A# G D# R "
+            "L12 G# C R D# G R >F <C A# R "
+            "L12 F A R C D# R G C D F R "
+            "L12 C D# R G A# R C G D# R"
         )
-        pyxel.sound(self.snd_melody_b).set(
-            notes="F4RE4RD4RC4R",
-            tones="PPPPPPPP",
-            volumes="77777777",
-            effects="NNNNNNNN",
-            speed=16,
+        pyxel.sound(self.snd_melody_b).mml(
+            "T118 Q70 @3 V13 O4 "
+            "L12 R G# C R  D# G R C R "
+            "L12 R F G# R  C D# R A# R "
+            "L12 R G# C R  D F R A R "
+            "L12 R G A# R  D F R C R "
+            "L12 R C D# R  G A# R D R "
+            "L12 R G# C R  F A# R D# R "
+            "L12 R F A R  C D R G R "
+            "L12 R C D# R  G R D# R "
+            "L12 R G# C R  D# G R C R "
+            "L12 R F G# R  C D# R A# R "
+            "L12 R G# C R  D F R A R "
+            "L12 R C D# R  G R D# R"
         )
-        pyxel.sound(self.snd_bass).set(
-            notes="C3RG2RF2R",
-            tones="TTTTTTTT",
-            volumes="77777777",
-            effects="VNNNVNNN",
-            speed=16,
+        pyxel.sound(self.snd_bass).mml(
+            "T118 Q64 @11 V15 O2 "
+            "L12 G# R R  C R D# R G R "
+            "L12 F R R  C R D# R A R "
+            "L12 G# R R  C R D R G R "
+            "L12 G R R  D R F R A R "
+            "L12 C R R  G R A# R D R "
+            "L12 G# R R  C R D# R G R "
+            "L12 F R R  C R D# R A R "
+            "L12 C R R  G R A# R D R "
+            "L12 G# R R  C R D# R G R "
+            "L12 F R R  C R D# R A R "
+            "L12 G# R R  C R D R G R "
+            "L12 C R R  G R A# R D R"
         )
-        pyxel.sound(self.snd_drums).set(
-            notes="C1RC1RC1RC1R",
-            tones="NNNNNNNN",
-            volumes="77777777",
-            effects="FFSFFSFF",
-            speed=16,
+        pyxel.sound(self.snd_drums).mml(
+            "T118 Q98 @14 V14 O2 "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C "
+            "L12 C R R  C R C R  L6 R C"
         )
 
     def init_music(self):
